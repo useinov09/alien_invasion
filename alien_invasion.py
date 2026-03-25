@@ -65,20 +65,9 @@ class AlienInvasion:
         """Запускает новую игру при нажатии кнопки Play."""
         button_clicked = self.play_button.rect.collidepoint(mouse_pos)
         if button_clicked and not self.stats.game_active:
-            # Сброс игровой статистики
-            self.stats.reset_stats()
-            self.stats.game_active = True
-
-            # Очистка списков пришельцев и снарядов.
-            self.aliens.empty()
-            self.bullets.empty()
-
-            # Создание нового флота и размещение корабля в центре.
-            self._create_fleet()
-            self.ship.center_ship()
-
-            # Указатель мыши скрывается.
-            pygame.mouse.set_visible(False)
+            # Сброс игровых настроек.
+            self.settings.initialize_dynamic_settings()
+            self.start_game()
 
     def _check_keydown_events(self, event):
         """Реагирует на нажатие клавиш."""
@@ -90,6 +79,25 @@ class AlienInvasion:
             sys.exit()
         elif event.key == pygame.K_SPACE:
             self._fire_bullet()
+        elif event.key == pygame.K_p and not self.stats.game_active:
+            self.start_game()
+
+    def start_game(self):
+        """Запуск новой игры"""
+        # Сброс игровой статистики
+        self.stats.reset_stats()
+        self.stats.game_active = True
+
+        # Очистка списков пришельцев и снарядов.
+        self.aliens.empty()
+        self.bullets.empty()
+
+        # Создание нового флота и размещение корабля в центре.
+        self._create_fleet()
+        self.ship.center_ship()
+
+        # Указатель мыши скрывается.
+        pygame.mouse.set_visible(False)
 
     def _check_keyup_events(self, event):
         """Реагирует на отпускание клавиш."""
@@ -122,9 +130,10 @@ class AlienInvasion:
         collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
 
         if not self.aliens:
-            # Уничтожение существующих снарядов и создание нового флота.
+            # Уничтожение снарядов, повышение скорости и создание нового флота.
             self.bullets.empty()
             self._create_fleet()
+            self.settings.increase_speed()
 
     def _create_fleet(self):
         """Создания флота вторжения"""
