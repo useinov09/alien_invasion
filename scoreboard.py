@@ -1,3 +1,4 @@
+import json
 import pygame.font
 from pygame.sprite import Sprite, Group
 
@@ -78,6 +79,8 @@ class Scoreboard():
         """Проверяет, появился ли новый рекорд."""
         if self.stats.score > self.stats.high_score:
             self.stats.high_score = self.stats.score
+            with open('record.json', 'w') as f:
+                json.dump(self.stats.high_score, f)
             self.prep_high_score()
 
 
