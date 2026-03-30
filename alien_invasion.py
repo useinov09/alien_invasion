@@ -158,6 +158,10 @@ class AlienInvasion:
             self.sb.prep_score()
             self.sb.check_high_score()
 
+        self._start_new_level()
+
+    def _start_new_level(self):
+        """При уничтожении всего флота, запускаем новый уровень"""
         if not self.aliens:
             # Уничтожение снарядов, повышение скорости и создание нового флота.
             self.bullets.empty()
@@ -242,6 +246,7 @@ class AlienInvasion:
             sleep(0.5)
         else:
             self.stats.game_active = False
+            self.sb.save_high_score()
             pygame.mouse.set_visible(True)
 
     def _check_aliens_bottom(self):

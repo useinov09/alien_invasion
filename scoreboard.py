@@ -1,6 +1,6 @@
 import json
 import pygame.font
-from pygame.sprite import Sprite, Group
+from pygame.sprite import Group
 
 from ship import Ship
 
@@ -20,6 +20,10 @@ class Scoreboard():
         self.font = pygame.font.SysFont(None, 48)
 
         # Подготовка изображений счетов.
+        self._prep_images()
+
+    def _prep_images(self):
+        """Графические изображения"""
         self.prep_score()
         self.prep_high_score()
         self.prep_level()
@@ -79,9 +83,12 @@ class Scoreboard():
         """Проверяет, появился ли новый рекорд."""
         if self.stats.score > self.stats.high_score:
             self.stats.high_score = self.stats.score
-            with open('record.json', 'w') as f:
-                json.dump(self.stats.high_score, f)
             self.prep_high_score()
+
+    def save_high_score(self):
+        """Сохраняет рекордное количество очков."""
+        with open('record.json', 'w') as f:
+            json.dump(self.stats.high_score, f)
 
 
 
