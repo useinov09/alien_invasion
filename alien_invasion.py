@@ -18,6 +18,7 @@ class AlienInvasion:
     def __init__(self):
         """Инициализирует игру и создает игровые ресурсы."""
         pygame.init()
+        pygame.mixer.init()
         # Настройка частоты кадров
         self.clock = pygame.time.Clock()
         self.settings = Settings()
@@ -26,6 +27,10 @@ class AlienInvasion:
         self.settings.screen_width = self.screen.get_rect().width
         self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption("Alien Invasion")
+
+        # Создание звуков и фоновой музыки
+        self._sound_init()
+        self._play_music()
 
         # Создание экземпляра для хранения статистики
         # и панели результатов
@@ -48,11 +53,21 @@ class AlienInvasion:
         self.normal_button = Button(self, "Normal", (cx, cy))
         self.hard_button = Button(self, "Hard", (cx + 280, cy))
 
+    def _sound_init(self):
+        """Инициализация звуков"""
+        try:
+            self.sound_shot = pygame.mixer.Sound('sound/shot.wav')
+            self.sound_hit = pygame.mixer.Sound('sound/hit.wav')
+            self.sound_defeat = pygame.mixer.Sound('sound/defeat.wav')
+        except FileNotFoundError:
+            self.sound_shot = None
+            self.sound_hit = None
+            self.sound_defeat = None
+
     def run_game(self):
         """Запуск основного цикла игры."""
         while True:
             self._check_events()
-
             if self.stats.game_active:
                 self.ship.update()
                 self._update_bullets()
@@ -94,9 +109,19 @@ class AlienInvasion:
             sys.exit()
         elif event.key == pygame.K_SPACE:
             self._fire_bullet()
+            self._play_sound(self.sound_shot)
         elif event.key == pygame.K_p and not self.stats.game_active:
             self.settings.set_difficulty('normal')
             self.start_game()
+
+    def _play_music(self):
+        """Воспроизведение фоновой музыки"""
+        try:
+            pygame.mixer.music.load('sound/bg_music.ogg')
+            pygame.mixer.music.play(-1)
+            pygame.mixer.music.set_volume(0.5)
+        except FileNotFoundError:
+            pass
 
     def start_game(self, difficulty='normal'):
         """Запуск новой игры"""
@@ -148,7 +173,7 @@ class AlienInvasion:
         self._check_bullet_alien_collisions()
 
     def _check_bullet_alien_collisions(self):
-        """Обработка коллизий снарядов, участвующих в коллизиях."""
+        """Обработка снарядов, участвующих в коллизиях."""
         # Удаление снарядов и пришельцев, участвующих в коллизиях.
         collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
 
@@ -157,6 +182,7 @@ class AlienInvasion:
                 self.stats.score += self.settings.alien_points * len(aliens )
             self.sb.prep_score()
             self.sb.check_high_score()
+            self._play_sound(self.sound_hit)
 
         self._start_new_level()
 
@@ -222,6 +248,7 @@ class AlienInvasion:
 
         # Проверка коллизий "пришелец – корабль".
         if pygame.sprite.spritecollideany(self.ship, self.aliens):
+            self._play_sound(self.sound_defeat)
             self._ship_hit()
 
         # Проверить добрались ли пришельцы до нижнего края экрана.
@@ -255,8 +282,13 @@ class AlienInvasion:
         for alien in self.aliens.sprites():
             if alien.rect.bottom >= screen_rect.bottom:
                 # Происходит то же, что при столкновении с кораблем.
+                self._play_sound(self.sound_defeat)
                 self._ship_hit()
                 break
+
+    def _play_sound(self, sound):
+        """Воспроизведение звуков"""
+        sound.play()
 
     def _update_screen(self):
         """Обрабатывает изображения на экране и отображает новый экран."""
